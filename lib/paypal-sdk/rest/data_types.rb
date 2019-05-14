@@ -2587,6 +2587,308 @@ module PayPal::SDK
         end
       end
 
+      class Product < Base
+        def self.load_members
+          object_of :id, String
+          object_of :name, String
+          object_of :description, String
+          object_of :type, String
+          object_of :category, String
+          object_of :image_url, String
+          object_of :home_url, String
+          object_of :create_time, DateTime
+          object_of :update_time, DateTime
+          array_of :links, Links
+        end
+
+        include RequestDataType
+
+        def create()
+          path = "v1/catalogs/products"
+          response = api.post(path, self.to_hash, http_header)
+          self.merge!(response)
+          success?
+        end
+
+        def update(patch_requests)
+          patch_request_array = []
+          patch_requests.each do |patch_request|
+            patch_request = Patch.new(patch_request) unless patch_request.is_a? Patch
+            patch_request_array << patch_request.to_hash
+          end
+          path = "v1/catalogs/products/#{self.id}"
+          response = api.patch(path, patch_request_array, http_header)
+          self.merge!(response)
+          success?
+        end
+
+        class << self
+          def find(resource_id)
+            raise ArgumentError.new("id required") if resource_id.to_s.strip.empty?
+            path = "v1/catalogs/products/#{resource_id}"
+            self.new(api.get(path))
+          end
+
+          def all(options = {})
+            path = "v1/catalogs/products"
+            ProductList.new(api.get(path, options))
+          end
+        end
+      end
+
+      class ProductList < Base
+        def self.load_members
+          array_of  :products, Product
+          object_of :total_items, Integer
+          object_of :total_pages, Integer
+          array_of :links, Links
+        end
+      end
+
+      class Frequency < Base
+        def self.load_members
+          object_of :interval_unit, String
+          object_of :interval_count, Integer
+        end
+      end
+
+      class PricingScheme < Base
+        def self.load_members
+          object_of :fixed_price, Money
+        end
+      end
+
+      class PricingSchemeRequest < Base
+        def self.load_members
+          object_of :billing_cycle_sequence, Integer
+          object_of :pricing_scheme, PricingScheme
+        end
+      end
+
+      class BillingCycle < Base
+        def self.load_members
+          object_of :frequency, Frequency
+          object_of :tenure_type, String
+          object_of :sequence, Integer
+          object_of :total_cycles, Integer
+          object_of :pricing_scheme, PricingScheme
+        end
+      end
+
+      class PaymentPreferences < Base
+        def self.load_members
+          object_of :auto_bill_outstanding, Boolean
+          object_of :setup_fee, Money
+          object_of :setup_fee_failure_action, String
+          object_of :payment_failure_threshold, Integer
+        end
+      end
+
+      class Taxes < Base
+        def self.load_members
+          object_of :percentage, String
+          object_of :inclusive, Boolean
+        end
+      end
+
+      class Plan < Base
+        def self.load_members
+          object_of :id, String
+          object_of :product_id, String
+          object_of :name, String
+          object_of :status, String
+          object_of :description, String
+          array_of :billing_cycles, BillingCycle
+          object_of :payment_preferences, PaymentPreferences
+          object_of :taxes, Taxes
+          object_of :quantity_supported, Boolean
+          object_of :create_time, DateTime
+          object_of :update_time, DateTime
+          array_of :links, Links
+        end
+
+        include RequestDataType
+
+        def create()
+          path = "v1/billing/plans"
+          response = api.post(path, self.to_hash, http_header)
+          self.merge!(response)
+          success?
+        end
+
+        def update(patch_requests)
+          patch_request_array = []
+          patch_requests.each do |patch_request|
+            patch_request = Patch.new(patch_request) unless patch_request.is_a? Patch
+            patch_request_array << patch_request.to_hash
+          end
+          path = "v1/billing/plans/#{self.id}"
+          response = api.patch(path, patch_request_array, http_header)
+          self.merge!(response)
+          success?
+        end
+
+        def activate
+          path = "v1/billing/plans/#{self.id}/activate"
+          response = api.post(path, http_header)
+          self.merge!(response)
+          success?
+        end
+
+        def deactivate
+          path = "v1/billing/plans/#{self.id}/deactivate"
+          response = api.post(path, http_header)
+          self.merge!(response)
+          success?
+        end
+
+        def set_pricing_schemes(pricing_scheme_requests)
+          pricing_scheme_array = []
+          pricing_scheme_requests.each do |pricing_scheme_request|
+            pricing_scheme_request = PricingSchemeRequest.new(pricing_scheme_request) unless pricing_scheme_request.is_a? PricingSchemeRequest
+            pricing_scheme_array << pricing_scheme_request.to_hash
+          end
+          path = "v1/billing/plans/#{self.id}/update-pricing-schemes"
+          response = api.post(path, { pricing_schemes: pricing_scheme_array }.to_hash, http_header)
+          self.merge!(response)
+          success?
+        end
+
+        class << self
+          def find(resource_id)
+            raise ArgumentError.new("id required") if resource_id.to_s.strip.empty?
+            path = "v1/billing/plans/#{resource_id}"
+            self.new(api.get(path))
+          end
+
+          def all(options = {})
+            path = "v1/billing/plans"
+            PlanList.new(api.get(path, options))
+          end
+        end
+      end
+
+      class PlanList < Base
+        def self.load_members
+          array_of  :plans, Plan
+          object_of :total_items, Integer
+          object_of :total_pages, Integer
+          array_of :links, Links
+        end
+      end
+
+      class PaymentMethod < Base
+        object_of :payer_selected, String
+        object_of :payee_preferred, String
+      end
+
+      class SubscriberApplicationContext < Base
+        object_of :brand_name, String
+        object_of :locale, String
+        object_of :shipping_preference, String
+        object_of :user_action, String
+        object_of :payment_method, PaymentMethod
+        object_of :return_url, String
+        object_of :cancel_url, String
+      end
+
+      class SubscriberName < Base
+        object_of :prefix, String
+        object_of :given_name, String
+        object_of :surname, String
+        object_of :middle_name, String
+        object_of :suffix, String
+        object_of :alternate_full_name, String
+        object_of :full_name, String
+      end
+
+      class SubscriberAddress < Base
+        object_of :address_line_1, String
+        object_of :address_line_2, String
+        object_of :admin_area_1, String
+        object_of :admin_area_2, String
+        object_of :postal_code, String
+        object_of :country_code, String
+      end
+
+      class SubscriberShippingAddress < Base
+        object_of :name, SubscriberName
+        object_of :address, SubscriberAddress
+      end
+
+      class Subscriber < Base
+        object_of :name, SubscriberName
+        object_of :email_address, String
+        object_of :shipping_address, SubscriberShippingAddress
+      end
+
+      class Subscription < Base
+        def self.load_members
+          object_of :id, String
+          object_of :status, String
+          object_of :status_update_time, DateTime
+          object_of :plan_id, String
+          object_of :start_time, DateTime
+          object_of :quantity, Integer
+          object_of :shipping_amount, Money
+          object_of :subscriber, Subscriber
+          object_of :auto_renewal, Boolean
+          object_of :create_time, DateTime
+          object_of :application_context, SubscriberApplicationContext
+          array_of :links, Links
+        end
+
+        include RequestDataType
+
+        def create()
+          path = "v1/billing/subscriptions"
+          response = api.post(path, self.to_hash, http_header)
+          self.merge!(response)
+          success?
+        end
+
+        def update(patch_requests)
+          patch_request_array = []
+          patch_requests.each do |patch_request|
+            patch_request = Patch.new(patch_request) unless patch_request.is_a? Patch
+            patch_request_array << patch_request.to_hash
+          end
+          path = "v1/billing/subscriptions/#{self.id}"
+          response = api.patch(path, patch_request_array, http_header)
+          self.merge!(response)
+          success?
+        end
+
+        def suspend
+          path = "v1/billing/subscriptions/#{self.id}/suspend"
+          response = api.post(path, http_header)
+          self.merge!(response)
+          success?
+        end
+
+        def cancel
+          path = "v1/billing/subscriptions/#{self.id}/cancel"
+          response = api.post(path, http_header)
+          self.merge!(response)
+          success?
+        end
+
+        def activate
+          path = "v1/billing/subscriptions/#{self.id}/activate"
+          response = api.post(path, http_header)
+          self.merge!(response)
+          success?
+        end
+
+        class << self
+          def find(resource_id)
+            raise ArgumentError.new("id required") if resource_id.to_s.strip.empty?
+            path = "v1/billing/subscriptions/#{resource_id}"
+            self.new(api.get(path))
+          end
+        end
+      end
+
       constants.each do |data_type_klass|
         data_type_klass = const_get(data_type_klass)
         data_type_klass.load_members if defined? data_type_klass.load_members
