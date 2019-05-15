@@ -2071,7 +2071,7 @@ module PayPal::SDK
         end
       end
 
-      class Plan < Base
+      class PaymentPlan < Base
         def self.load_members
           object_of :id, String
           object_of :name, String
@@ -2222,9 +2222,9 @@ module PayPal::SDK
         end
       end
 
-      class PlanList < Base
+      class PaymentPlanList < Base
         def self.load_members
-          array_of  :plans, Plan
+          array_of  :plans, PaymentPlan
           object_of :total_items, String
           object_of :total_pages, String
           array_of  :links, Links
@@ -2243,7 +2243,7 @@ module PayPal::SDK
               object_of :shipping_address, Address
               object_of :override_merchant_preferences, MerchantPreferences
             array_of  :override_charge_models, OverrideChargeModel
-              object_of :plan, Plan
+              object_of :plan, PaymentPlan
               object_of :create_time, String
               object_of :update_time, String
             array_of  :links, Links
